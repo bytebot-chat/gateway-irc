@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"os"
 
+	"github.com/bbriggs/bytebot-irc/model"
 	"github.com/go-redis/redis/v8"
 	"github.com/satori/go.uuid"
 	hbot "github.com/whyrusleeping/hellabot"
@@ -17,17 +18,6 @@ var (
 	ctx context.Context
 	rdb *redis.Client
 )
-
-type Message struct {
-	*hbot.Message
-	Metadata Metadata
-}
-
-type Metadata struct {
-	Source string
-	Dest   string
-	ID     uuid.UUID
-}
 
 var serv = flag.String("server", "localhost:6667", "hostname and port for irc server to connect to")
 var nick = flag.String("nick", "bytebot", "nickname for the bot")
@@ -54,7 +44,7 @@ var sayInfoMessage = hbot.Trigger{
 		return true
 	},
 	Action: func(irc *hbot.Bot, m *hbot.Message) bool {
-		msg := new(Message)
+		msg := new(model.Message)
 		msg.Metadata.ID = uuid.Must(uuid.NewV4(), *new(error))
 		msg.Metadata.Source = *id
 		msg.Message = m
