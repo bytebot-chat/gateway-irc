@@ -24,6 +24,7 @@ var nick = flag.String("nick", "bytebot", "nickname for the bot")
 var id = flag.String("id", "irc", "ID to use when publishing messages")
 var inbound = flag.String("inbound", "irc-inbound", "Pubsub queue to publish inbound messages to")
 var outbound = flag.String("outbound", *id, "Pubsub to subscribe to for sending outbound messages. Defaults to being equivalent to `id`")
+var tls = flag.Bool("tls", false, "Use TLS when connecting to IRC server")
 
 func main() {
 	flag.Parse()
@@ -31,10 +32,10 @@ func main() {
 	rdb = rdbConnect()
 	ctx = context.Background()
 
-	irc, _ := newBot(serv, nick)
+	irc, _ := newBot(serv, nick, tls)
 	irc.AddTrigger(sayInfoMessage)
 	irc.Logger.SetHandler(log.StreamHandler(os.Stdout, log.JsonFormat()))
-
+	go handleOutbound(*outbound, rdb, irc)
 	irc.Run()
 	fmt.Println("Bot shutting down.")
 }
@@ -52,4 +53,20 @@ var sayInfoMessage = hbot.Trigger{
 		rdb.Publish(ctx, *inbound, stringMsg)
 		return false
 	},
+}
+
+func handleOutbound(sub string, rdb *redis.Client, irc *hbot.Bot) {
+	ctx := context.Background()
+	topic := rdb.Subscribe(ctx, sub)
+	channel := topic.Channel()
+	for msg := range channel {
+		m := &model.Message{}
+		err := m.Unmarshal([]byte(msg.Payload))
+		if err != nil {
+			fmt.Println(err)
+		}
+		if m.Metadata.Dest == *id {
+			irc.Msg(m.To, m.Content)
+		}
+	}
 }

@@ -4,14 +4,16 @@ import (
 	hbot "github.com/whyrusleeping/hellabot"
 )
 
-func newBot(serv, nick *string) (*hbot.Bot, error) {
-	hijackSession := func(bot *hbot.Bot) {
-		bot.HijackSession = true
-	}
-
-	channels := func(bot *hbot.Bot) {
+func newBot(serv, nick *string, tls *bool) (*hbot.Bot, error) {
+	options := func(bot *hbot.Bot) {
+		if *tls {
+			bot.HijackSession = false
+		} else {
+			bot.HijackSession = true
+		}
+		bot.SSL = *tls
 		bot.Channels = []string{"#test"}
 	}
 
-	return hbot.NewBot(*serv, *nick, hijackSession, channels)
+	return hbot.NewBot(*serv, *nick, options)
 }
