@@ -20,6 +20,7 @@ var (
 )
 
 var serv = flag.String("server", "localhost:6667", "hostname and port for irc server to connect to")
+var redisAddr = flag.String("redis", "localhost:6379", "Address and port of redis host")
 var nick = flag.String("nick", "bytebot", "nickname for the bot")
 var id = flag.String("id", "irc", "ID to use when publishing messages")
 var inbound = flag.String("inbound", "irc-inbound", "Pubsub queue to publish inbound messages to")
@@ -29,7 +30,7 @@ var tls = flag.Bool("tls", false, "Use TLS when connecting to IRC server")
 func main() {
 	flag.Parse()
 
-	rdb = rdbConnect()
+	rdb = rdbConnect(*redisAddr)
 	ctx = context.Background()
 
 	irc, _ := newBot(serv, nick, tls)
