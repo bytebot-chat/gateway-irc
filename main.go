@@ -33,14 +33,14 @@ func main() {
 	ctx = context.Background()
 
 	irc, _ := newBot(serv, nick, tls)
-	irc.AddTrigger(sayInfoMessage)
+	irc.AddTrigger(relayMessages)
 	irc.Logger.SetHandler(log.StreamHandler(os.Stdout, log.JsonFormat()))
 	go handleOutbound(*outbound, rdb, irc)
 	irc.Run()
 	fmt.Println("Bot shutting down.")
 }
 
-var sayInfoMessage = hbot.Trigger{
+var relayMessages = hbot.Trigger{
 	Condition: func(bot *hbot.Bot, m *hbot.Message) bool {
 		return true
 	},
