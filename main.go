@@ -17,23 +17,27 @@ import (
 var (
 	ctx context.Context
 	rdb *redis.Client
+
+	channels  stringArrayFlags
+	serv      = flag.String("server", "localhost:6667", "hostname and port for irc server to connect to")
+	redisAddr = flag.String("redis", "localhost:6379", "Address and port of redis host")
+	nick      = flag.String("nick", "bytebot", "nickname for the bot")
+	id        = flag.String("id", "irc", "ID to use when publishing messages")
+	inbound   = flag.String("inbound", "irc-inbound", "Pubsub queue to publish inbound messages to")
+	outbound  = flag.String("outbound", *id, "Pubsub to subscribe to for sending outbound messages. Defaults to being equivalent to `id`")
+	tls       = flag.Bool("tls", false, "Use TLS when connecting to IRC server")
 )
 
-var serv = flag.String("server", "localhost:6667", "hostname and port for irc server to connect to")
-var redisAddr = flag.String("redis", "localhost:6379", "Address and port of redis host")
-var nick = flag.String("nick", "bytebot", "nickname for the bot")
-var id = flag.String("id", "irc", "ID to use when publishing messages")
-var inbound = flag.String("inbound", "irc-inbound", "Pubsub queue to publish inbound messages to")
-var outbound = flag.String("outbound", *id, "Pubsub to subscribe to for sending outbound messages. Defaults to being equivalent to `id`")
-var tls = flag.Bool("tls", false, "Use TLS when connecting to IRC server")
-
 func main() {
+
+	flag.Var(&channels, "channel", "Channel to join at startup. May be repeated. Example: -channel=\\#foo -channel=\\#bar")
+
 	flag.Parse()
 
 	rdb = rdbConnect(*redisAddr)
 	ctx = context.Background()
 
-	irc, _ := newBot(serv, nick, tls)
+	irc, _ := newBot(serv, nick, tls, channels)
 	irc.AddTrigger(relayMessages)
 	irc.Logger.SetHandler(log.StreamHandler(os.Stdout, log.JsonFormat()))
 	go handleOutbound(*outbound, rdb, irc)
