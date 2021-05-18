@@ -35,8 +35,6 @@ func main() {
 	flag.Parse()
 	parseEnv()
 
-	fmt.Println(*nick)
-
 	rdb = rdbConnect(*redisAddr)
 	ctx = context.Background()
 
