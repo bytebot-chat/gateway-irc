@@ -1,0 +1,17 @@
+version: "3.8"
+services:
+        bytebot:
+                build: .
+                environment:
+                        BYTEBOT_REDIS: "redis:6379"
+                        BYTEBOT_CHANNELS: ${BYTEBOT_CHANNELS:-\#tests}
+                        BYTEBOT_SERVER: ${BYTEBOT_SERVER:-localhost:6667}
+                        BYTEBOT_NICK: ${BYTEBOT_NICK:-bytebot}
+                        BYTEBOT_ID: ${BYTEBOT_ID:-irc}
+                        BYTEBOT_INBOUND: ${BYTEBOT_INBOUND:-irc-inbound}
+                        BYTEBOT_OUTBOUND: ${BYTEBOT_OUTBOUND:-irc}
+                        BYTEBOT_TLS: $BYTEBOT_TLS
+        redis:
+                image: redis:6.2.3
+                ports:
+                        - "127.0.0.1:6379:6379"
