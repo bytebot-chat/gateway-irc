@@ -33,6 +33,7 @@ func main() {
 	flag.Var(&channels, "channel", "Channel to join at startup. May be repeated. Example: -channel=\\#foo -channel=\\#bar")
 
 	flag.Parse()
+	parseEnv()
 
 	rdb = rdbConnect(*redisAddr)
 	ctx = context.Background()
