@@ -1,4 +1,4 @@
-module github.com/bbriggs/bytebot-irc
+module github.com/bytebot-chat/gateway-irc
 
 go 1.14
 

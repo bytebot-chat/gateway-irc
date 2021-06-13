@@ -8,7 +8,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/bbriggs/bytebot-irc/model"
+	"github.com/bytebot-chat/gateway-irc/model"
 	"github.com/go-redis/redis/v8"
 	"github.com/satori/go.uuid"
 )
