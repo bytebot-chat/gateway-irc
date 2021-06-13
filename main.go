@@ -54,7 +54,9 @@ var relayMessages = hbot.Trigger{
 		msg := new(model.Message)
 		msg.Metadata.ID = uuid.Must(uuid.NewV4(), *new(error))
 		msg.Metadata.Source = *id
-		msg.Message = m
+		msg.From = m.From
+		msg.To = m.To
+		msg.Content = m.Content
 		stringMsg, _ := json.Marshal(msg)
 		rdb.Publish(ctx, *inbound, stringMsg)
 		return false

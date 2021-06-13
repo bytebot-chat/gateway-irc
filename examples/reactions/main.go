@@ -46,7 +46,9 @@ func main() {
 		// Unmarshaling the message to be able to use it.
 		// A message looks like this:
 		//  type Message struct {
-		//  	*hbot.Message  // See https://pkg.go.dev/github.com/whyrusleeping/hellabot#Message
+		//  	From     string
+		//  	To       string
+		//  	Content  string
 		//  	Metadata Metadata // Source, Dest and ID.
 		//  }
 
