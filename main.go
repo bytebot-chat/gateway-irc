@@ -5,7 +5,6 @@ import (
 	"encoding/json"
 	"flag"
 	"fmt"
-	"os"
 
 	"github.com/bytebot-chat/gateway-irc/model"
 	"github.com/go-redis/redis/v8"
@@ -38,9 +37,10 @@ func main() {
 	rdb = rdbConnect(*redisAddr)
 	ctx = context.Background()
 
+	log.Info("Connecting to IRC", "server", *serv, "nick", *nick, "tls", *tls)
 	irc, _ := newBot(serv, nick, tls, channels)
 	irc.AddTrigger(relayMessages)
-	irc.Logger.SetHandler(log.StreamHandler(os.Stdout, log.JsonFormat()))
+
 	go handleOutbound(*outbound, rdb, irc)
 	irc.Run()
 	fmt.Println("Bot shutting down.")
@@ -58,6 +58,7 @@ var relayMessages = hbot.Trigger{
 		msg.To = m.To
 		msg.Content = m.Content
 		stringMsg, _ := json.Marshal(msg)
+		log.Info("dispatching message", "topic", *inbound, "from", m.From, "to", m.To, "content", m.Content)
 		rdb.Publish(ctx, *inbound, stringMsg)
 		return false
 	},
@@ -71,9 +72,11 @@ func handleOutbound(sub string, rdb *redis.Client, irc *hbot.Bot) {
 		m := &model.Message{}
 		err := m.Unmarshal([]byte(msg.Payload))
 		if err != nil {
+			log.Error("Failed to unmarshal message", "error", err.Error())
 			fmt.Println(err)
 		}
 		if m.Metadata.Dest == *id {
+			log.Info("dispatching message", "topic", sub, "from", m.From, "to", m.To, "content", m.Content)
 			irc.Msg(m.To, m.Content)
 		}
 	}
