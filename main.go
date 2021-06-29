@@ -8,9 +8,9 @@ import (
 
 	"github.com/bytebot-chat/gateway-irc/model"
 	"github.com/go-redis/redis/v8"
+	"github.com/rs/zerolog/log"
 	"github.com/satori/go.uuid"
 	hbot "github.com/whyrusleeping/hellabot"
-	log "gopkg.in/inconshreveable/log15.v2"
 )
 
 var (
@@ -37,7 +37,12 @@ func main() {
 	rdb = rdbConnect(*redisAddr)
 	ctx = context.Background()
 
-	log.Info("Connecting to IRC", "server", *serv, "nick", *nick, "tls", *tls)
+	log.Info().
+		Str("server", *serv).
+		Str("nick", *nick).
+		Bool("tls", *tls).
+		Msg("Connecting to IRC")
+
 	irc, _ := newBot(serv, nick, tls, channels)
 	irc.AddTrigger(relayMessages)
 
@@ -58,7 +63,11 @@ var relayMessages = hbot.Trigger{
 		msg.To = m.To
 		msg.Content = m.Content
 		stringMsg, _ := json.Marshal(msg)
-		log.Info("dispatching message", "topic", *inbound, "from", m.From, "to", m.To, "content", m.Content)
+		log.Info().
+			Str("topic", *inbound).
+			RawJSON("message", stringMsg).
+			Msg("incoming message")
+
 		rdb.Publish(ctx, *inbound, stringMsg)
 		return false
 	},
@@ -72,11 +81,19 @@ func handleOutbound(sub string, rdb *redis.Client, irc *hbot.Bot) {
 		m := &model.Message{}
 		err := m.Unmarshal([]byte(msg.Payload))
 		if err != nil {
-			log.Error("Failed to unmarshal message", "error", err.Error())
+			log.Error().
+				Err(err).
+				Msg("Failed to unmarshal message")
 			fmt.Println(err)
 		}
 		if m.Metadata.Dest == *id {
-			log.Info("dispatching message", "topic", sub, "from", m.From, "to", m.To, "content", m.Content)
+			log.Info().
+				Str("topic", sub).
+				Str("from", m.From).
+				Str("to", m.To).
+				Str("content", m.Content).
+				Msg("dispatching message")
+
 			irc.Msg(m.To, m.Content)
 		}
 	}

@@ -6,12 +6,14 @@ import (
 	"time"
 
 	"github.com/go-redis/redis/v8"
-	log "gopkg.in/inconshreveable/log15.v2"
+	"github.com/rs/zerolog/log"
 )
 
 func rdbConnect(addr string) *redis.Client {
 	ctx := context.Background()
-	log.Info("connecting to redis...", "redis", addr)
+	log.Info().
+		Str("redis", addr).
+		Msg("connecting to redis...")
 	rdb := redis.NewClient(&redis.Options{
 		Addr:     addr,
 		Password: "", // no password set
@@ -23,7 +25,9 @@ func rdbConnect(addr string) *redis.Client {
 		time.Sleep(3 * time.Second)
 		err := rdb.Ping(ctx).Err()
 		if err != nil {
-			log.Crit("FATAL unable to connect to redis", "error", err)
+			log.Fatal().
+				Err(err).
+				Msg("Couldn't connect to redis")
 			os.Exit(1)
 		}
 	}
